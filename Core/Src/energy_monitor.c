@@ -9,5 +9,5 @@
 
 void set_energy_monitor_pwr(bool state)
 {
-
+ HAL_GPIO_WritePin(cEN_ENERGY_MONITOR_GPIO_Port, cEN_ENERGY_MONITOR_Pin, state);
 }

@@ -9,7 +9,6 @@
 
 extern I2C_HandleTypeDef hi2c1;
 
-
 void mcp23017_init(MCP23017_HandleTypeDef *hdev, I2C_HandleTypeDef *hi2c,
 		uint16_t addr)
 {
@@ -60,19 +59,19 @@ void mcp23013_set_pin_dir(MCP23017_HandleTypeDef *hdev, uint8_t gpio_port,
 void mcp23013_set_pin_state(MCP23017_HandleTypeDef *hdev, uint8_t gpio_port,
 		uint8_t gpio_pin, gpio_state_t state)
 {
-	uint8_t write_data[1] =
-	{ 0 };
+	uint8_t current_data;
+	mcp23017_read_reg(hdev, REGISTER_GPIOA | gpio_port, &current_data);
 
 	if (state == GPIO_RESET)
 	{
-		write_data[0] &= ~gpio_pin;
+		current_data &= ~gpio_pin;
 	}
-	if (state == GPIO_SET)
+	else if (state == GPIO_SET)
 	{
-		write_data[0] |= gpio_pin;
+		current_data |= gpio_pin;
 	}
 
-	mcp23017_write_reg(hdev, REGISTER_GPIOA | gpio_port, &write_data[0]);
+	mcp23017_write_reg(hdev, REGISTER_GPIOA | gpio_port, &current_data);
 }
 
 bool mcp23013_get_pin_state(MCP23017_HandleTypeDef *hdev, uint8_t gpio_port,

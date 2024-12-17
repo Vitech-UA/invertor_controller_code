@@ -10,6 +10,13 @@
 #include "stdbool.h"
 #include "MCP23017.h"
 
+typedef enum EG_DEAD_TIME{
+	EG_DEAD_TIME_300_NS = 3,
+	EG_DEAD_TIME_500_NS = 2,
+	EG_DEAD_TIME_1_US = 1,
+	EG_DEAD_TIME_1p5_US = 0,
+}EG_DEAD_TIME_t;
+
 #define CEN_FAN_PORT MCP23017_PORTA
 #define CEN_FAN_PIN MCP23017_GPIO2
 
@@ -57,8 +64,10 @@
 
 void set_12V(bool state);
 void set_bridge_power(bool state);
-void connect_charger(bool state);
 void set_buzzer(bool state);
+void set_charger(bool state);
+void set_eg_pwm(bool state);
+void config_eg_dead_time(EG_DEAD_TIME_t dead_time);
 void init_gpio_expander(void);
 
 #endif /* INC_INVERTOR_H_ */

@@ -87,7 +87,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-	init_gpio_expander();
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -98,9 +98,20 @@ int main(void)
   MX_SPI1_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-	set_buzzer(false);
+    init_gpio_expander();
+    i2c_scan_bus();
+	set_buzzer(true);
 	set_energy_monitor_pwr(false);
-	set_12V(false);
+	set_12V(true);
+	set_bridge_power(true);
+
+	// Конфіг DEAD_TIME
+	EG_DEAD_TIME_t dead_time_config = EG_DEAD_TIME_500_NS;
+	config_eg_dead_time(dead_time_config);
+
+	set_eg_pwm(true);
+
+
 
   /* USER CODE END 2 */
 

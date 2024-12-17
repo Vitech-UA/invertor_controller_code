@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define cEN_ENERGY_MONITOR_Pin GPIO_PIN_13
+#define cEN_ENERGY_MONITOR_GPIO_Port GPIOC
 #define LCD_RST_Pin GPIO_PIN_1
 #define LCD_RST_GPIO_Port GPIOA
 #define xMEAS_CURRENT_Pin GPIO_PIN_6

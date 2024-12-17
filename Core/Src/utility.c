@@ -17,7 +17,8 @@ void print_binary(uint8_t size, void const *const ptr)
 	unsigned char byte;
 	int i, j;
 	sprintf(UART_BUFFER, "0b");
-	HAL_UART_Transmit(&huart2, (uint8_t*)UART_BUFFER, strlen(UART_BUFFER), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER, strlen(UART_BUFFER),
+			HAL_MAX_DELAY);
 
 	for (i = size - 1; i >= 0; i--)
 	{
@@ -25,12 +26,14 @@ void print_binary(uint8_t size, void const *const ptr)
 		{
 			byte = (b[i] >> j) & 1;
 			sprintf(UART_BUFFER, "%u", byte);
-			HAL_UART_Transmit(&huart2, (uint8_t*)UART_BUFFER, strlen(UART_BUFFER),
-			HAL_MAX_DELAY);
+			HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER,
+					strlen(UART_BUFFER),
+					HAL_MAX_DELAY);
 		}
 	}
 	sprintf(UART_BUFFER, "\n");
-	HAL_UART_Transmit(&huart2, (uint8_t*)UART_BUFFER, strlen(UART_BUFFER), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER, strlen(UART_BUFFER),
+			HAL_MAX_DELAY);
 }
 
 void i2c_scan_bus(void)
@@ -45,7 +48,7 @@ void i2c_scan_bus(void)
 		if (HAL_I2C_IsDeviceReady(&hi2c1, i << 1, 10, 100) == HAL_OK)
 		{
 			search_result = true;
-			sprintf(UART_BUFFER, "Find: 0x%02X\r\n", i << 1);
+			sprintf(UART_BUFFER, "Find: 0x%02X\r\n", i);
 			HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER,
 					strlen(UART_BUFFER), 100);
 		}
@@ -59,7 +62,7 @@ void i2c_scan_bus(void)
 	}
 }
 
-void UART_Printf(const char *fmt, ...) {
+void UART_Printf(const char *fmt, ...){
 	char buff[256];
 	va_list args;
 	va_start(args, fmt);
