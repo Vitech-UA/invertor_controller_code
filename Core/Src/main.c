@@ -56,7 +56,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void config_eg8010(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -100,15 +100,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
     init_gpio_expander();
     i2c_scan_bus();
-	set_buzzer(true);
-	set_energy_monitor_pwr(false);
+
+    config_eg8010();
+
 	set_12V(true);
 	set_bridge_power(true);
-
-	// Конфіг DEAD_TIME
-	EG_DEAD_TIME_t dead_time_config = EG_DEAD_TIME_500_NS;
-	config_eg_dead_time(dead_time_config);
-
 	set_eg_pwm(true);
 
 
@@ -170,7 +166,14 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void config_eg8010(void){
+	// Конфіг DEAD_TIME
+	EG_DEAD_TIME_t dead_time_config = EG_DEAD_TIME_1p5_US;
+	config_eg_dead_time(dead_time_config);
+	// Конфіг частоти 50 Гц
+	set_invertor_freq(EG_FREQ_60HZ);
+	set_invertor_softstart(false);
+}
 /* USER CODE END 4 */
 
 /**
