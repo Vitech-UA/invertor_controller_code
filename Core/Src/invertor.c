@@ -39,7 +39,7 @@ void set_eg_pwm(bool state)
 
 void set_buzzer(bool state)
 {
-	HAL_GPIO_WritePin(cEN_BUZZER_GPIO_Port, cEN_BUZZER_Pin, state);
+//	HAL_GPIO_WritePin(cEN_BUZZER_GPIO_Port, cEN_BUZZER_Pin, state);
 }
 
 void set_charger(bool state)

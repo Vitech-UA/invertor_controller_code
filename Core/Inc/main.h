@@ -59,12 +59,12 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define cEN_ENERGY_MONITOR_Pin GPIO_PIN_13
 #define cEN_ENERGY_MONITOR_GPIO_Port GPIOC
+#define LCD_BLK_Pin GPIO_PIN_15
+#define LCD_BLK_GPIO_Port GPIOC
+#define LCD_DC_Pin GPIO_PIN_0
+#define LCD_DC_GPIO_Port GPIOD
 #define LCD_RST_Pin GPIO_PIN_1
 #define LCD_RST_GPIO_Port GPIOA
-#define xMEAS_CURRENT_Pin GPIO_PIN_6
-#define xMEAS_CURRENT_GPIO_Port GPIOA
-#define xMEAS_VBAT_Pin GPIO_PIN_7
-#define xMEAS_VBAT_GPIO_Port GPIOA
 #define cEN_CHARGER_PWR_Pin GPIO_PIN_0
 #define cEN_CHARGER_PWR_GPIO_Port GPIOB
 #define dEXT_U_DET_Pin GPIO_PIN_1
@@ -89,8 +89,6 @@ void Error_Handler(void);
 #define BTN_DW_GPIO_Port GPIOA
 #define xI_CHRG_Pin GPIO_PIN_12
 #define xI_CHRG_GPIO_Port GPIOA
-#define cEN_BUZZER_Pin GPIO_PIN_4
-#define cEN_BUZZER_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
