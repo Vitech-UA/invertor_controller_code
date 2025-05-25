@@ -10,20 +10,17 @@
 extern UART_HandleTypeDef huart2;
 extern I2C_HandleTypeDef hi2c1;
 
-void print_binary(uint8_t size, void const *const ptr)
-{
+void print_binary(uint8_t size, void const *const ptr) {
 	char UART_BUFFER[50];
 	unsigned char *b = (unsigned char*) ptr;
 	unsigned char byte;
 	int i, j;
 	sprintf(UART_BUFFER, "0b");
 	HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER, strlen(UART_BUFFER),
-			HAL_MAX_DELAY);
+	HAL_MAX_DELAY);
 
-	for (i = size - 1; i >= 0; i--)
-	{
-		for (j = 7; j >= 0; j--)
-		{
+	for (i = size - 1; i >= 0; i--) {
+		for (j = 7; j >= 0; j--) {
 			byte = (b[i] >> j) & 1;
 			sprintf(UART_BUFFER, "%u", byte);
 			HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER,
@@ -33,20 +30,16 @@ void print_binary(uint8_t size, void const *const ptr)
 	}
 	sprintf(UART_BUFFER, "\n");
 	HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER, strlen(UART_BUFFER),
-			HAL_MAX_DELAY);
+	HAL_MAX_DELAY);
 }
 
-void i2c_scan_bus(void)
-{
+void i2c_scan_bus(void) {
 	uint8_t i = 0;
-	char UART_BUFFER[20] =
-	{ };
+	char UART_BUFFER[20] = { };
 	bool search_result = false;
 	/* Scan only for 112 allowed addresses */
-	for (i = 0x07; i < 0x78; i++)
-	{
-		if (HAL_I2C_IsDeviceReady(&hi2c1, i << 1, 10, 100) == HAL_OK)
-		{
+	for (i = 0x07; i < 0x78; i++) {
+		if (HAL_I2C_IsDeviceReady(&hi2c1, i << 1, 10, 100) == HAL_OK) {
 			search_result = true;
 			sprintf(UART_BUFFER, "Find: 0x%02X\r\n", i);
 			HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER,
@@ -54,15 +47,14 @@ void i2c_scan_bus(void)
 		}
 
 	}
-	if (!search_result)
-	{
+	if (!search_result) {
 		sprintf(UART_BUFFER, "Devices not found\r\n");
 		HAL_UART_Transmit(&huart2, (uint8_t*) UART_BUFFER, strlen(UART_BUFFER),
 				100);
 	}
 }
 
-void UART_Printf(const char *fmt, ...){
+void UART_Printf(const char *fmt, ...) {
 	char buff[256];
 	va_list args;
 	va_start(args, fmt);
