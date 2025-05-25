@@ -9,6 +9,7 @@
 #define INC_INVERTOR_H_
 #include "stdbool.h"
 #include "MCP23017.h"
+#include "st7789.h"
 
 typedef enum EG_DEAD_TIME
 {
@@ -76,5 +77,8 @@ void config_eg_dead_time(EG_DEAD_TIME_t dead_time);
 void set_invertor_freq(EG_INVERTOR_FREQ_t freq);
 void set_invertor_softstart(bool softstart);
 void init_gpio_expander(void);
+void print_vbat(uint16_t raw_adc_vbat_value);
+float calculate_vbat(uint16_t adc_value);
+void print_ibat(uint16_t raw_adc_vbat_value);
 
 #endif /* INC_INVERTOR_H_ */

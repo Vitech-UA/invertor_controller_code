@@ -9,6 +9,8 @@
 #define UTILITY_H_
 #include "main.h"
 #include "stdarg.h"
+#include "stdio.h"
+#include "string.h"
 
 void print_binary(uint8_t size, void const * const ptr);
 void i2c_scan_bus(void);
