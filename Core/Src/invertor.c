@@ -50,6 +50,7 @@ void set_invertor_softstart(bool softstart) {
 	mcp23013_set_pin_state(&hmcp, SST_PORT, SST_PIN, !softstart);
 }
 
+
 void init_gpio_expander(void) {
 	mcp23017_init(&hmcp, &hi2c1, MCP23017_ADDRESS_20); // init IC
 

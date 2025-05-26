@@ -60,23 +60,24 @@
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void config_eg8010(void);
-uint16_t update_moving_average(uint16_t *buffer, uint32_t *sum, uint8_t *index, uint16_t new_value);
+uint16_t update_moving_average(uint16_t *buffer, uint32_t *sum, uint8_t *index,
+		uint16_t new_value);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #define MA_WINDOW_SIZE 16  // розмір ковзного вікна
 
-uint16_t raw_adc_values[3] = {0};  // CH0, VBAT (CH4), IBAT (CH6)
+uint16_t raw_adc_values[3] = { 0 };  // CH0, VBAT (CH4), IBAT (CH6)
 uint8_t adc_cplt_flag = 0;
 
 // Для VBAT (канал 4)
-uint16_t vbat_buffer[MA_WINDOW_SIZE] = {0};
+uint16_t vbat_buffer[MA_WINDOW_SIZE] = { 0 };
 uint32_t vbat_sum = 0;
 uint8_t vbat_index = 0;
 
 // Для IBAT (канал 6)
-uint16_t ibat_buffer[MA_WINDOW_SIZE] = {0};
+uint16_t ibat_buffer[MA_WINDOW_SIZE] = { 0 };
 uint32_t ibat_sum = 0;
 uint8_t ibat_index = 0;
 
@@ -122,26 +123,46 @@ int main(void)
 	config_eg8010();
 	set_12V(true);
 	set_bridge_power(true);
-	set_eg_pwm(true);
+	//set_eg_pwm(true);
+	set_energy_monitor_pwr(true);
 	HAL_ADCEx_Calibration_Start(&hadc1);
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &raw_adc_values, 3);
+
+	float voltage = 0.0;
+	float current = 0.0;
+	float power = 0.0;
+	float pf = 0.0;
+	float freq = 0.0;
+	float energy = 0.0;
+	bool alrm = 0;
+	PZEM004Tv30_init(0xF8);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-		if (adc_cplt_flag) {
-		        HAL_ADC_Stop_DMA(&hadc1);
-		        adc_cplt_flag = 0;
+//		if (adc_cplt_flag) {
+//			HAL_ADC_Stop_DMA(&hadc1);
+//			adc_cplt_flag = 0;
+//
+//			uint16_t vbat_avg = update_moving_average(vbat_buffer, &vbat_sum,
+//					&vbat_index, raw_adc_values[1]);
+//			uint16_t ibat_avg = update_moving_average(ibat_buffer, &ibat_sum,
+//					&ibat_index, raw_adc_values[2]);
+//
+//			print_vbat(vbat_avg);
+//			print_ibat(ibat_avg);
+//
+//			HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &raw_adc_values, 3);
+//		}
 
-		        uint16_t vbat_avg = update_moving_average(vbat_buffer, &vbat_sum, &vbat_index, raw_adc_values[1]);
-		        uint16_t ibat_avg = update_moving_average(ibat_buffer, &ibat_sum, &ibat_index, raw_adc_values[2]);
+		voltage = PZEM004Tv30_voltage();
+		power = PZEM004Tv30_power();
+		current = PZEM004Tv30_current();
+		freq = PZEM004Tv30_frequency();
+		pf = PZEM004Tv30_pf();
+		energy = PZEM004Tv30_energy();
 
-		        print_vbat(vbat_avg);
-		        print_ibat(ibat_avg);
-
-		        HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &raw_adc_values, 3);
-		    }
 
     /* USER CODE END WHILE */
 
@@ -197,14 +218,15 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
-uint16_t update_moving_average(uint16_t *buffer, uint32_t *sum, uint8_t *index, uint16_t new_value) {
-    *sum -= buffer[*index];           // відняти старе значення
-    buffer[*index] = new_value;       // оновити буфер новим значенням
-    *sum += new_value;                // додати нове значення до суми
+uint16_t update_moving_average(uint16_t *buffer, uint32_t *sum, uint8_t *index,
+		uint16_t new_value) {
+	*sum -= buffer[*index];           // відняти старе значення
+	buffer[*index] = new_value;       // оновити буфер новим значенням
+	*sum += new_value;                // додати нове значення до суми
 
-    *index = (*index + 1) % MA_WINDOW_SIZE;  // інкремент індексу по колу
+	*index = (*index + 1) % MA_WINDOW_SIZE;  // інкремент індексу по колу
 
-    return (uint16_t)(*sum / MA_WINDOW_SIZE);
+	return (uint16_t) (*sum / MA_WINDOW_SIZE);
 }
 
 void config_eg8010(void) {
