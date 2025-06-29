@@ -119,50 +119,29 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	ST7789_Init();
 	init_gpio_expander();
-	i2c_scan_bus();
 	config_eg8010();
 	set_12V(true);
 	set_bridge_power(true);
-	//set_eg_pwm(true);
+	set_eg_pwm(true);
 	set_energy_monitor_pwr(true);
 	HAL_ADCEx_Calibration_Start(&hadc1);
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &raw_adc_values, 3);
-
-	float voltage = 0.0;
-	float current = 0.0;
-	float power = 0.0;
-	float pf = 0.0;
-	float freq = 0.0;
-	float energy = 0.0;
-	bool alrm = 0;
-	PZEM004Tv30_init(0xF8);
+    PZEM004Tv30_init(0xF8);
+    set_220v_out(true);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-//		if (adc_cplt_flag) {
-//			HAL_ADC_Stop_DMA(&hadc1);
-//			adc_cplt_flag = 0;
-//
-//			uint16_t vbat_avg = update_moving_average(vbat_buffer, &vbat_sum,
-//					&vbat_index, raw_adc_values[1]);
-//			uint16_t ibat_avg = update_moving_average(ibat_buffer, &ibat_sum,
-//					&ibat_index, raw_adc_values[2]);
-//
-//			print_vbat(vbat_avg);
-//			print_ibat(ibat_avg);
-//
-//			HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &raw_adc_values, 3);
-//		}
-
-		voltage = PZEM004Tv30_voltage();
-		power = PZEM004Tv30_power();
-		current = PZEM004Tv30_current();
-		freq = PZEM004Tv30_frequency();
-		pf = PZEM004Tv30_pf();
-		energy = PZEM004Tv30_energy();
-
+		if (adc_cplt_flag) {
+			HAL_ADC_Stop_DMA(&hadc1);
+			adc_cplt_flag = 0;
+			uint16_t vbat_avg = update_moving_average(vbat_buffer, &vbat_sum, &vbat_index, raw_adc_values[1]);
+			print_vbat(vbat_avg);
+			print_ac_vout(PZEM004Tv30_voltage());
+			print_ac_power(PZEM004Tv30_power());
+			HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &raw_adc_values, 3);
+		}
 
     /* USER CODE END WHILE */
 
@@ -231,11 +210,11 @@ uint16_t update_moving_average(uint16_t *buffer, uint32_t *sum, uint8_t *index,
 
 void config_eg8010(void) {
 	// Конфіг DEAD_TIME
-	EG_DEAD_TIME_t dead_time_config = EG_DEAD_TIME_1p5_US;
+	EG_DEAD_TIME_t dead_time_config = EG_DEAD_TIME_1_US;
 	config_eg_dead_time(dead_time_config);
 	// Конфіг частоти 50 Гц
 	set_invertor_freq(EG_FREQ_50HZ);
-	set_invertor_softstart(true);
+	set_invertor_softstart(false);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {

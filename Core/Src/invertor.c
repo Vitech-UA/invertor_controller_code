@@ -50,7 +50,6 @@ void set_invertor_softstart(bool softstart) {
 	mcp23013_set_pin_state(&hmcp, SST_PORT, SST_PIN, !softstart);
 }
 
-
 void init_gpio_expander(void) {
 	mcp23017_init(&hmcp, &hi2c1, MCP23017_ADDRESS_20); // init IC
 
@@ -82,6 +81,14 @@ void init_gpio_expander(void) {
 	mcp23013_set_pin_dir(&hmcp, SST_PORT, SST_PIN, GPIO_OUTPUT);
 	mcp23013_set_pin_state(&hmcp, SST_PORT, SST_PIN, false);
 
+	mcp23013_set_pin_dir(&hmcp, CEN_220V_OUT_PORT, CEN_220V_OUT_PIN,
+			GPIO_OUTPUT);
+	mcp23013_set_pin_state(&hmcp, CEN_220V_OUT_PORT, CEN_220V_OUT_PIN, false);
+
+}
+
+void set_220v_out(bool state) {
+	mcp23013_set_pin_state(&hmcp, CEN_220V_OUT_PORT, CEN_220V_OUT_PIN, state);
 }
 
 void print_ibat(uint16_t raw_adc_ibat_value) {
@@ -89,7 +96,8 @@ void print_ibat(uint16_t raw_adc_ibat_value) {
 	float v_in = ((float) raw_adc_ibat_value / 4095.0f) * vref;
 	float i_bat = v_in * 3.0f;  // струм = v_in * (60 / 20)
 	char LCD_BUFFER[20] = { 0 };
-	sprintf(LCD_BUFFER, "IBAT: %.2f A", i_bat);
+//	sprintf(LCD_BUFFER, "IBAT: %.3f A", v_in * 1000 * 0.02);
+	sprintf(LCD_BUFFER, "IBAT: %i", raw_adc_ibat_value);
 	ST7789_WriteString(0, 30, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
@@ -99,6 +107,26 @@ void print_vbat(uint16_t raw_adc_vbat_value) {
 	char LCD_BUFFER[20] = { };
 	sprintf(LCD_BUFFER, "VBAT: %.1f V", v_bat_volt);
 	ST7789_WriteString(0, 0, LCD_BUFFER, Font_16x26, WHITE, BLACK);
+}
+
+void print_ac_vout(uint16_t ac_voltage_value) {
+	 int value = (int)ac_voltage_value;
+	    if (value > 999) {
+	        value = 999;
+	    }
+	char LCD_BUFFER[20] = { };
+	sprintf(LCD_BUFFER, "Vout: %03d V", value);
+	ST7789_WriteString(0, 60, LCD_BUFFER, Font_16x26, WHITE, BLACK);
+}
+
+void print_ac_power(float ac_power_value) {
+	char LCD_BUFFER[20] = { };
+	 int value = (int)ac_power_value;
+	    if (value > 999) {
+	        value = 999;
+	    }
+	sprintf(LCD_BUFFER, "Pout: %03d W", value);
+	ST7789_WriteString(0, 90, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
 float calculate_vbat(uint16_t adc_value) {

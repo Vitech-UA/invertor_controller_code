@@ -1,4 +1,26 @@
-.cproject
+# Output
 Debug/
-Drivers/
-.settings/
+Release/
+
+# IDE temporary files
+*.launch
+*.log
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# User-specific settings
+.settings/language.settings.xml
+.metadata/
+*.user
+*.project~*
+
+# Optional: If using CubeMX separately
+*.ioc~
+
+# DO NOT ignore:
+#!.cproject
+#!.project
+#!Drivers/**
+#!.settings/**
