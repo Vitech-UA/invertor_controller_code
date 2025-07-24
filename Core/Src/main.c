@@ -39,10 +39,13 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 #define SAMPLES_PER_CHANNEL 512
+#define ADC_MAX 4096
+#define ADC_REF 3.3
+#define INA_GAIN 20
+
+
 uint16_t adc_dma_buffer[SAMPLES_PER_CHANNEL];
 float32_t adc_float_buffer[SAMPLES_PER_CHANNEL];
-volatile uint16_t sample_index = 0;
-volatile uint8_t samples_ready = 0;
 
 /* USER CODE END PTD */
 
@@ -73,10 +76,12 @@ void config_eg8010(void);
 /* USER CODE BEGIN 0 */
 void arm_uint16_to_float32(uint16_t *src, float32_t *dst, uint32_t blockSize);
 void arm_uint16_to_float32(uint16_t *src, float32_t *dst, uint32_t blockSize) {
-    for (uint32_t i = 0; i < blockSize; i++) {
-        dst[i] = (float32_t)src[i];
-    }
+	for (uint32_t i = 0; i < blockSize; i++) {
+		dst[i] = (float32_t) src[i];
+	}
 }
+
+
 /* USER CODE END 0 */
 
 /**
@@ -126,6 +131,7 @@ int main(void) {
 	HAL_TIM_Base_Start(&htim3);
 	HAL_ADCEx_Calibration_Start(&hadc1);
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_dma_buffer, SAMPLES_PER_CHANNEL);
+
 
 	/* USER CODE END 2 */
 
@@ -184,33 +190,45 @@ void SystemClock_Config(void) {
 /* USER CODE BEGIN 4 */
 
 void config_eg8010(void) {
-	// Конфіг DEAD_TIME
 	EG_DEAD_TIME_t dead_time_config = EG_DEAD_TIME_1_US;
 	config_eg_dead_time(dead_time_config);
-	// Конфіг частоти 50 Гц
 	set_invertor_freq(EG_FREQ_50HZ);
 	set_invertor_softstart(false);
 }
 
+#define RMS_AVG_COUNT 50
+
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+    if (hadc->Instance == ADC1) {
+        static float rms_history[RMS_AVG_COUNT] = {0};
+        static uint8_t rms_index = 0;
+        static uint8_t rms_count = 0;
 
-	if (hadc->Instance == ADC1) {
-	        // Конвертуємо uint16_t -> float32_t
-	        arm_uint16_to_float32(adc_dma_buffer, adc_float_buffer, SAMPLES_PER_CHANNEL);
+        arm_uint16_to_float32(adc_dma_buffer, adc_float_buffer, SAMPLES_PER_CHANNEL);
+        float32_t rms_val = 0.0f;
+        arm_rms_f32(adc_float_buffer, SAMPLES_PER_CHANNEL, &rms_val);
 
-	        // Обчислення RMS
-	        float32_t rms_val = 0.0f;
-	        arm_rms_f32(adc_float_buffer, SAMPLES_PER_CHANNEL, &rms_val);
+        float adc_voltage = ((ADC_REF / ADC_MAX) * rms_val) / INA_GAIN;
+        float current_rms = (adc_voltage / 0.00125f) - 4;
 
-	        // Вивід RMS у UART
-	        char uart_msg[64];
-	        int len = snprintf(uart_msg, sizeof(uart_msg), "RMS = %.2f\n", rms_val);
-	        HAL_UART_Transmit(&huart2, (uint8_t *)uart_msg, len, HAL_MAX_DELAY);
 
-	        // Якщо потрібно, відправляй також сирі дані
-	        // write_adc_buffer_to_uart(SAMPLES_PER_CHANNEL, adc_dma_buffer);
-	    }
+        rms_history[rms_index++] = current_rms;
+        if (rms_index >= RMS_AVG_COUNT) rms_index = 0;
+        if (rms_count < RMS_AVG_COUNT) rms_count++;
+
+
+        float sum = 0.0f;
+        for (uint8_t i = 0; i < rms_count; i++) {
+            sum += rms_history[i];
+        }
+        float current_avg = sum / rms_count;
+
+        char uart_msg[64];
+        int len = snprintf(uart_msg, sizeof(uart_msg), "Irms_avg = %.3fA\n", current_avg);
+        HAL_UART_Transmit(&huart2, (uint8_t*) uart_msg, len, HAL_MAX_DELAY);
+    }
 }
+
 /* USER CODE END 4 */
 
 /**
