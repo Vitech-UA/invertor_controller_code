@@ -39,14 +39,12 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 #define SAMPLES_PER_CHANNEL 512
-#define RMS_AVG_COUNT 20
-#define ADC_MAX 4096
-#define ADC_REF 3.3
-#define INA_GAIN 20
+uint16_t adc_dma_buffer[SAMPLES_PER_CHANNEL * 2];  // 1024 семплів (2 канали)
+float32_t adc_float_ch0[SAMPLES_PER_CHANNEL];
+float32_t adc_float_ch1[SAMPLES_PER_CHANNEL];
 
-uint16_t adc_dma_buffer[SAMPLES_PER_CHANNEL];
-float32_t adc_float_buffer[SAMPLES_PER_CHANNEL];
-volatile float i_battery = 0.0;
+volatile float v_battery;
+volatile float i_battery;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -111,12 +109,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_I2C1_Init();
   MX_ADC1_Init();
   MX_TIM3_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 	ST7789_Init();
 	init_gpio_expander();
@@ -125,21 +123,26 @@ int main(void)
 	set_bridge_power(true);
 	set_eg_pwm(true);
 	set_energy_monitor_pwr(true);
-	PZEM004Tv30_init(0xF8);
+	PZEM004Tv30_init(PZEM_DEFAULT_ADDR);
 	set_220v_out(true);
 
 	HAL_TIM_Base_Start(&htim3);
 	HAL_ADCEx_Calibration_Start(&hadc1);
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_dma_buffer, SAMPLES_PER_CHANNEL);
-    float ac_voltage = 0.0;
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_dma_buffer,
+	SAMPLES_PER_CHANNEL * 2);
+	float ac_voltage = 0.0;
+	float ac_power = 0.0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
 		print_ibat(i_battery);
+		print_vbat(v_battery);
 		ac_voltage = PZEM004Tv30_voltage();
-		//print_ac_vout(ac_voltage);
+		ac_power = PZEM004Tv30_power();
+		print_ac_vout(ac_voltage);
+		print_ac_power(ac_power);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -203,27 +206,21 @@ void config_eg8010(void) {
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	if (hadc->Instance == ADC1) {
-		static float rms_history[RMS_AVG_COUNT] = { 0 };
-		static uint8_t rms_index = 0;
-		static uint8_t rms_count = 0;
-		arm_uint16_to_float32(adc_dma_buffer, adc_float_buffer,
-				SAMPLES_PER_CHANNEL);
-		float32_t rms_val = 0.0f;
-		arm_rms_f32(adc_float_buffer, SAMPLES_PER_CHANNEL, &rms_val);
-		float adc_data_i = ((ADC_REF / ADC_MAX) * rms_val) / INA_GAIN;
-		float current_rms = CALIB_A * (adc_data_i / 0.00125f) + CALIB_B;
 
-		rms_history[rms_index++] = current_rms;
-		if (rms_index >= RMS_AVG_COUNT)
-			rms_index = 0;
-		if (rms_count < RMS_AVG_COUNT)
-			rms_count++;
-
-		float sum = 0.0f;
-		for (uint8_t i = 0; i < rms_count; i++) {
-			sum += rms_history[i];
+		for (uint16_t i = 0; i < SAMPLES_PER_CHANNEL; i++) {
+			adc_float_ch1[i] = (float32_t) adc_dma_buffer[i * 2];
+			adc_float_ch0[i] = (float32_t) adc_dma_buffer[i * 2 + 1];
 		}
-		i_battery = sum / rms_count;
+		float32_t rms_v_val = 0.0f;
+		float32_t rms_i_val = 0.0f;
+
+		// Напруга
+		arm_rms_f32(adc_float_ch0, SAMPLES_PER_CHANNEL, &rms_v_val);
+		v_battery = calculate_vbat(rms_v_val);
+		// Струм
+		arm_rms_f32(adc_float_ch1, SAMPLES_PER_CHANNEL, &rms_i_val);
+		i_battery = calculate_current_rms(rms_i_val);
+
 	}
 }
 

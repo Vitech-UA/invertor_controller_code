@@ -13,6 +13,11 @@
 extern I2C_HandleTypeDef hi2c1;
 MCP23017_HandleTypeDef hmcp;
 
+#define INA_GAIN 20
+#define RMS_AVG_COUNT 20
+#define ADC_MAX 4096
+#define ADC_REF 3.3
+
 void config_eg_dead_time(EG_DEAD_TIME_t dead_time) {
 	bool dt0_state = dead_time & 0x01;
 	bool dt1_state = (dead_time >> 1) & 0x01;
@@ -97,26 +102,45 @@ void print_ibat(float i_bat_value) {
 	ST7789_WriteString(0, 30, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
-void print_vbat(uint16_t raw_adc_vbat_value) {
-	float v_bat_volt = 0;
-	v_bat_volt = calculate_vbat(raw_adc_vbat_value);
+float calculate_current_rms(float raw_adc_rms) {
+	static float rms_history[RMS_AVG_COUNT] = { 0 };
+	static uint8_t rms_index = 0;
+	static uint8_t rms_count = 0;
+
+	float adc_data_i = ((ADC_REF / ADC_MAX) * raw_adc_rms) / INA_GAIN;
+	float current_rms = CALIB_A * (adc_data_i / 0.00125f) + CALIB_B;
+
+	rms_history[rms_index++] = current_rms;
+	if (rms_index >= RMS_AVG_COUNT)
+		rms_index = 0;
+	if (rms_count < RMS_AVG_COUNT)
+		rms_count++;
+
+	float sum = 0.0f;
+	for (uint8_t i = 0; i < rms_count; i++) {
+		sum += rms_history[i];
+	}
+	return sum / rms_count;
+}
+
+void print_vbat(float raw_adc_vbat_value) {
 	char LCD_BUFFER[20] = { };
-	sprintf(LCD_BUFFER, "VBAT: %.1f V", v_bat_volt);
+	sprintf(LCD_BUFFER, "VBAT: %4.1f V", raw_adc_vbat_value);
 	ST7789_WriteString(0, 0, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
 void print_ac_vout(float ac_voltage_value) {
 	char LCD_BUFFER[20] = { };
-	sprintf(LCD_BUFFER, "Vout: %f V", ac_voltage_value);
+	sprintf(LCD_BUFFER, "Vout: %5.1f V", ac_voltage_value);
 	ST7789_WriteString(0, 60, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
 void print_ac_power(float ac_power_value) {
 	char LCD_BUFFER[10] = { };
-	 int value = (int)ac_power_value;
-	    if (value > 999) {
-	        value = 999;
-	    }
+	int value = (int) ac_power_value;
+	if (value > 999) {
+		value = 999;
+	}
 	sprintf(LCD_BUFFER, "Pout: %03d W", value);
 	ST7789_WriteString(0, 90, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }

@@ -65,6 +65,8 @@ void Error_Handler(void);
 #define LCD_DC_GPIO_Port GPIOD
 #define LCD_RST_Pin GPIO_PIN_1
 #define LCD_RST_GPIO_Port GPIOA
+#define U_BAT_Pin GPIO_PIN_4
+#define U_BAT_GPIO_Port GPIOA
 #define I_BAT_Pin GPIO_PIN_6
 #define I_BAT_GPIO_Port GPIOA
 #define cEN_CHARGER_PWR_Pin GPIO_PIN_0

@@ -14,18 +14,15 @@
 #define CALIB_A 0.8383f
 #define CALIB_B -2.072f
 
-typedef enum EG_DEAD_TIME
-{
+typedef enum EG_DEAD_TIME {
 	EG_DEAD_TIME_300_NS = 3,
 	EG_DEAD_TIME_500_NS = 2,
 	EG_DEAD_TIME_1_US = 1,
 	EG_DEAD_TIME_1p5_US = 0,
 } EG_DEAD_TIME_t;
 
-typedef enum EG_INVERTOR_FREQ
-{
-	EG_FREQ_50HZ = true,
-	EG_FREQ_60HZ = false,
+typedef enum EG_INVERTOR_FREQ {
+	EG_FREQ_50HZ = true, EG_FREQ_60HZ = false,
 
 } EG_INVERTOR_FREQ_t;
 
@@ -81,10 +78,11 @@ void config_eg_dead_time(EG_DEAD_TIME_t dead_time);
 void set_invertor_freq(EG_INVERTOR_FREQ_t freq);
 void set_invertor_softstart(bool softstart);
 void init_gpio_expander(void);
-void print_vbat(uint16_t raw_adc_vbat_value);
+void print_vbat(float raw_adc_vbat_value);
 void print_ac_vout(float ac_voltage_value);
 void print_ac_power(float ac_power_value);
 float calculate_vbat(uint16_t adc_value);
 void print_ibat(float i_bat_value);
+float calculate_current_rms(float raw_adc_rms);
 
 #endif /* INC_INVERTOR_H_ */
