@@ -25,7 +25,6 @@ uint64_t _lastRead; // час з моменту останнього оновл�
 float PZEM004Tv30_voltage() {
 	if (!PZEM004Tv30_updateValues()) // Update vales if necessary
 		return 0; // Update did not work, return NAN
-
 	return voltage;
 }
 
@@ -257,48 +256,43 @@ uint16_t PZEM004Tv30_recieve(uint8_t *resp, uint16_t len) {
 	return index;
 }
 
-bool PZEM004Tv30_setPowerAlarm(uint16_t watts)
-{
-    if (watts > 25000){ // Sanitych check
-        watts = 25000;
-    }
+bool PZEM004Tv30_setPowerAlarm(uint16_t watts) {
+	if (watts > 25000) { // Sanitych check
+		watts = 25000;
+	}
 
-    // Write the watts threshold to the Alarm register
-    if(!PZEM004Tv30_sendCmd8(CMD_WSR, WREG_ALARM_THR, watts, true, 0x01))
-        return false;
+	// Write the watts threshold to the Alarm register
+	if (!PZEM004Tv30_sendCmd8(CMD_WSR, WREG_ALARM_THR, watts, true, 0x01))
+		return false;
 
-    return true;
+	return true;
 }
 
+bool PZEM004Tv30_getPowerAlarm() {
+	if (!PZEM004Tv30_updateValues()) // Update vales if necessary
+		return 0; // Update did not work, return NAN
 
-bool PZEM004Tv30_getPowerAlarm()
-{
-	if(!PZEM004Tv30_updateValues()) // Update vales if necessary
-	        return 0; // Update did not work, return NAN
-
-	    return alarms != 0x0000;
+	return alarms != 0x0000;
 }
-bool PZEM004Tv30_resetEnergy(){
-    uint8_t buffer[] = {0x00, CMD_REST, 0x00, 0x00};
-    uint8_t reply[5];
-    buffer[0] = _addr;
+bool PZEM004Tv30_resetEnergy() {
+	uint8_t buffer[] = { 0x00, CMD_REST, 0x00, 0x00 };
+	uint8_t reply[5];
+	buffer[0] = _addr;
 
-    PZEM004Tv30_setCRC(buffer, 4);
+	PZEM004Tv30_setCRC(buffer, 4);
 
-    HAL_UART_Transmit(PZEM_UART, buffer, 4, HAL_MAX_DELAY);
+	HAL_UART_Transmit(PZEM_UART, buffer, 4, HAL_MAX_DELAY);
 
-    uint16_t length = recieve(reply, 5);
+	uint16_t length = recieve(reply, 5);
 
-    if(length == 0 || length == 5){
-        return false;
-    }
+	if (length == 0 || length == 5) {
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
-
-
-void set_energy_monitor_pwr(bool state)
-{
- HAL_GPIO_WritePin(cEN_ENERGY_MONITOR_GPIO_Port, cEN_ENERGY_MONITOR_Pin, state);
+void set_energy_monitor_pwr(bool state) {
+	HAL_GPIO_WritePin(cEN_ENERGY_MONITOR_GPIO_Port, cEN_ENERGY_MONITOR_Pin,
+			state);
 }

@@ -11,6 +11,9 @@
 #include "MCP23017.h"
 #include "st7789.h"
 
+#define CALIB_A 0.8383f
+#define CALIB_B -2.072f
+
 typedef enum EG_DEAD_TIME
 {
 	EG_DEAD_TIME_300_NS = 3,
@@ -79,9 +82,9 @@ void set_invertor_freq(EG_INVERTOR_FREQ_t freq);
 void set_invertor_softstart(bool softstart);
 void init_gpio_expander(void);
 void print_vbat(uint16_t raw_adc_vbat_value);
-void print_ac_vout(uint16_t ac_voltage_value);
+void print_ac_vout(float ac_voltage_value);
 void print_ac_power(float ac_power_value);
 float calculate_vbat(uint16_t adc_value);
-void print_ibat(uint16_t raw_adc_vbat_value);
+void print_ibat(float i_bat_value);
 
 #endif /* INC_INVERTOR_H_ */

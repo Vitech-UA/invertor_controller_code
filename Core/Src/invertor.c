@@ -91,13 +91,9 @@ void set_220v_out(bool state) {
 	mcp23013_set_pin_state(&hmcp, CEN_220V_OUT_PORT, CEN_220V_OUT_PIN, state);
 }
 
-void print_ibat(uint16_t raw_adc_ibat_value) {
-	float vref = 3.3f;
-	float v_in = ((float) raw_adc_ibat_value / 4095.0f) * vref;
-	float i_bat = v_in * 3.0f;  // струм = v_in * (60 / 20)
+void print_ibat(float i_bat_value) {
 	char LCD_BUFFER[20] = { 0 };
-//	sprintf(LCD_BUFFER, "IBAT: %.3f A", v_in * 1000 * 0.02);
-	sprintf(LCD_BUFFER, "IBAT: %i", raw_adc_ibat_value);
+	sprintf(LCD_BUFFER, "IBAT: %4.1f", i_bat_value);
 	ST7789_WriteString(0, 30, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
@@ -109,18 +105,14 @@ void print_vbat(uint16_t raw_adc_vbat_value) {
 	ST7789_WriteString(0, 0, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
-void print_ac_vout(uint16_t ac_voltage_value) {
-	 int value = (int)ac_voltage_value;
-	    if (value > 999) {
-	        value = 999;
-	    }
+void print_ac_vout(float ac_voltage_value) {
 	char LCD_BUFFER[20] = { };
-	sprintf(LCD_BUFFER, "Vout: %03d V", value);
+	sprintf(LCD_BUFFER, "Vout: %f V", ac_voltage_value);
 	ST7789_WriteString(0, 60, LCD_BUFFER, Font_16x26, WHITE, BLACK);
 }
 
 void print_ac_power(float ac_power_value) {
-	char LCD_BUFFER[20] = { };
+	char LCD_BUFFER[10] = { };
 	 int value = (int)ac_power_value;
 	    if (value > 999) {
 	        value = 999;
